@@ -32,13 +32,14 @@ export class GameComponent implements OnInit {
   takeCard() {
     if (!this.pickCardAnimation) {
       this.pickCardAnimation = true;
-      this.currentCard = this.game.stack.pop()!;  // "!" damit der Typ "undefined" entfernt wird. Ist das good oder bad practice?
+      this.currentCard = this.game.stack.pop()!;  // "!" damit der Typ "undefined" entfernt wird. Ist das good oder bad practice? (theor. könnte das Array "stack" auch leer sein!)
         console.log(this.currentCard);
-      this.game.playedCards.push(this.currentCard);
 
       setTimeout(() => {
+        this.game.playedCards.push(this.currentCard);
+          console.log(this.game);
         this.pickCardAnimation = false;
-      }, 1500);
+      }, 1000);
     }
   }
 
