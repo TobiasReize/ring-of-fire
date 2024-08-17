@@ -2,17 +2,18 @@
 
     <div class="card-stack">
 
-        <!-- <img *ngFor="let c of [0,1,2,3,4]; let i = index;" [ngStyle]="{'right.px': i * 5}" src="/assets/img/cards/card_cover.png" alt="card-cover"> -->
-
         @for (c of [0, 1, 2, 3]; track i; let i = $index) {
             <img [ngStyle]="{'right.px': i * 5}" 
                 src="/assets/img/cards/card_cover.png" alt="card-cover">
         }
-        <img (click)="takeCard()" [class.pick-card]="pickCardAnimation" class="top-card" style="right: 20px" 
-            src="/assets/img/cards/card_cover.png" alt="card-cover">
-        <img (click)="takeCard()" *ngIf="pickCardAnimation" class="top-card pick-card" style="right: 20px" 
-            src="/assets/img/cards/spade_1.png" alt="spade-1">
 
+        <img (click)="takeCard()" class="top-card" style="right: 20px" 
+            src="/assets/img/cards/card_cover.png" alt="card-cover">
+
+        @if (pickCardAnimation) {
+        <img (click)="takeCard()" class="pick-card" style="right: 20px" 
+            src="/assets/img/cards/{{ currentCard }}.png" alt="spade-1">
+        }
 
     </div>
 
