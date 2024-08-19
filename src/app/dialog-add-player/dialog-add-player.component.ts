@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
+import { MatDialog, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
@@ -16,9 +16,15 @@ import { MatInputModule } from '@angular/material/input';
 export class DialogAddPlayerComponent {
 
   name: string = '';
+  readonly dialog = inject(MatDialog);
+  readonly dialogRef = inject(MatDialogRef<DialogAddPlayerComponent>);
+
+
+  constructor() {}
+
 
   onNoClick() {
-    //tbd.
+    this.dialogRef.close();
   }
 
 }

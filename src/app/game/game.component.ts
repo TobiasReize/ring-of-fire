@@ -33,18 +33,14 @@ export class GameComponent implements OnInit {
 
   newGame() {
     this.game = new Game();
-    console.log(this.game);
   }
 
 
   takeCard() {
-    if (!this.pickCardAnimation) {
+    if (!this.pickCardAnimation && this.game.players.length > 0) {
       this.currentCard = this.game.stack.pop()!;  // "!" damit der Typ "undefined" entfernt wird. Ist das good oder bad practice? (theor. könnte das Array "stack" auch leer sein!)
-        console.log(this.currentCard);
       this.pickCardAnimation = true;
-      // this.game.currentPlayer = this.currentCardNumber % this.game.players.length;
-      this.game.currentPlayer++;
-      this.game.currentPlayer = this.game.currentPlayer % this.game.players.length;
+      this.game.currentPlayer = this.currentCardNumber % this.game.players.length;
 
       setTimeout(() => {
         this.game.playedCards.push(this.currentCard);
@@ -52,7 +48,7 @@ export class GameComponent implements OnInit {
 
       setTimeout(() => {
         this.pickCardAnimation = false;
-        // this.currentCardNumber++;
+        this.currentCardNumber++;
       }, 1000);
     }
   }
@@ -61,7 +57,7 @@ export class GameComponent implements OnInit {
   openDialog() {
     const dialogRef = this.dialog.open(DialogAddPlayerComponent);
     dialogRef.afterClosed().subscribe((name: string) => {
-      if (name != '') {
+      if (name && name.length > 0) {
         this.game.players.push(name);
       }
     });
