@@ -19,6 +19,7 @@ export class GameComponent implements OnInit {
   pickCardAnimation = false;
   game!: Game;
   currentCard: string = '';
+  currentCardNumber: number = 0;
 
 
   constructor(public dialog: MatDialog) {}
@@ -40,6 +41,7 @@ export class GameComponent implements OnInit {
       this.currentCard = this.game.stack.pop()!;  // "!" damit der Typ "undefined" entfernt wird. Ist das good oder bad practice? (theor. könnte das Array "stack" auch leer sein!)
         console.log(this.currentCard);
       this.pickCardAnimation = true;
+      this.game.currentPlayer = this.currentCardNumber % this.game.players.length;
 
       setTimeout(() => {
         this.game.playedCards.push(this.currentCard);
@@ -48,6 +50,7 @@ export class GameComponent implements OnInit {
 
       setTimeout(() => {
         this.pickCardAnimation = false;
+        this.currentCardNumber++;
       }, 1000);
     }
   }
@@ -55,11 +58,9 @@ export class GameComponent implements OnInit {
 
   openDialog() {
     const dialogRef = this.dialog.open(DialogAddPlayerComponent);
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
-      if (result !== undefined) {
-        // this.animal.set(result);
+    dialogRef.afterClosed().subscribe((name: string) => {
+      if (name != '') {
+        this.game.players.push(name);
       }
     });
   }
