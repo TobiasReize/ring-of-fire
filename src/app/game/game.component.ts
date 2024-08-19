@@ -6,12 +6,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DialogAddPlayerComponent } from '../dialog-add-player/dialog-add-player.component';
+import { GameInfoComponent } from '../game-info/game-info.component';
 
 
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [CommonModule, PlayerComponent, MatButtonModule, MatIconModule, MatDialogModule],
+  imports: [CommonModule, PlayerComponent, MatButtonModule, MatIconModule, MatDialogModule, GameInfoComponent],
   templateUrl: './game.component.html',
   styleUrl: './game.component.scss',
 })
@@ -41,16 +42,17 @@ export class GameComponent implements OnInit {
       this.currentCard = this.game.stack.pop()!;  // "!" damit der Typ "undefined" entfernt wird. Ist das good oder bad practice? (theor. könnte das Array "stack" auch leer sein!)
         console.log(this.currentCard);
       this.pickCardAnimation = true;
-      this.game.currentPlayer = this.currentCardNumber % this.game.players.length;
+      // this.game.currentPlayer = this.currentCardNumber % this.game.players.length;
+      this.game.currentPlayer++;
+      this.game.currentPlayer = this.game.currentPlayer % this.game.players.length;
 
       setTimeout(() => {
         this.game.playedCards.push(this.currentCard);
-          console.log(this.game);
       }, 900);
 
       setTimeout(() => {
         this.pickCardAnimation = false;
-        this.currentCardNumber++;
+        // this.currentCardNumber++;
       }, 1000);
     }
   }
