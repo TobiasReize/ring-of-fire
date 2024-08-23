@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DialogAddPlayerComponent } from '../dialog-add-player/dialog-add-player.component';
 import { GameInfoComponent } from '../game-info/game-info.component';
-import { addDoc, collection, collectionData, doc, Firestore, getDoc, onSnapshot, Unsubscribe } from '@angular/fire/firestore';
+import { addDoc, collection, collectionData, doc, Firestore, getDoc, onSnapshot, Unsubscribe, updateDoc } from '@angular/fire/firestore';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
 
@@ -27,6 +27,7 @@ export class GameComponent implements OnInit {
 
   firestore: Firestore = inject(Firestore);
   unsubGame!: Unsubscribe;
+  gameId:string = '';
 
 
   constructor(private route: ActivatedRoute, public dialog: MatDialog) {}
@@ -36,8 +37,9 @@ export class GameComponent implements OnInit {
     this.newGame();
     this.route.params.subscribe(
       (params) => {
-        console.log(params['id']);
-        this.unsubGame = onSnapshot(this.getSingleDocRef('games', params['id']), (game) => {
+        this.gameId = params['id'];
+        console.log(this.gameId);
+        this.unsubGame = onSnapshot(this.getSingleDocRef('games', this.gameId), (game) => {
           let gameData: any = game.data();
           console.log(gameData);
           this.game.currentPlayer = gameData.currentPlayer;
@@ -69,10 +71,12 @@ export class GameComponent implements OnInit {
     if (!this.pickCardAnimation && this.game.players.length > 0) {
       this.currentCard = this.game.stack.pop()!;  // "!" damit der Typ "undefined" entfernt wird. Ist das good oder bad practice? (theor. könnte das Array "stack" auch leer sein!)
       this.pickCardAnimation = true;
+      this.saveGame();
       this.game.currentPlayer = this.currentCardNumber % this.game.players.length;
 
       setTimeout(() => {
         this.game.playedCards.push(this.currentCard);
+        this.saveGame();
       }, 900);
 
       setTimeout(() => {
@@ -88,8 +92,17 @@ export class GameComponent implements OnInit {
     dialogRef.afterClosed().subscribe((name: string) => {
       if (name && name.length > 0) {
         this.game.players.push(name);
+        this.saveGame();
       }
     });
+  }
+
+
+  async saveGame() {
+    let docRef = this.getSingleDocRef('games', this.gameId);
+    await updateDoc(docRef, this.game.toJson()).catch(
+      (err) => {console.error(err);}
+    );
   }
 
 }

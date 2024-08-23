@@ -10,6 +10,8 @@
     width: 100vw;
     max-width: 100%;
     background-image: url('./../../assets/img/board.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
     @include dFlex();
 }
 
