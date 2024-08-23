@@ -7,7 +7,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DialogAddPlayerComponent } from '../dialog-add-player/dialog-add-player.component';
 import { GameInfoComponent } from '../game-info/game-info.component';
-import { addDoc, collection, collectionData, Firestore } from '@angular/fire/firestore';
+import { addDoc, collection, collectionData, doc, Firestore, getDoc, onSnapshot, Unsubscribe } from '@angular/fire/firestore';
+import { ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs';
 
 
 @Component({
@@ -24,43 +26,42 @@ export class GameComponent implements OnInit {
   currentCardNumber: number = 0;
 
   firestore: Firestore = inject(Firestore);
-  items$;
-  items;
+  unsubGame!: Unsubscribe;
 
 
-  constructor(public dialog: MatDialog) {
-    this.items$ = collectionData(this.getGamesColRef());
-    this.items = this.items$.subscribe((game) => {
-      console.log('Game update', game);
-      // game.forEach(element => {
-      //   console.log(element);
-      // })
-    });
-  }
+  constructor(private route: ActivatedRoute, public dialog: MatDialog) {}
 
 
   ngOnInit(): void {
     this.newGame();
+    this.route.params.subscribe(
+      (params) => {
+        console.log(params['id']);
+        this.unsubGame = onSnapshot(this.getSingleDocRef('games', params['id']), (game) => {
+          let gameData: any = game.data();
+          console.log(gameData);
+          this.game.currentPlayer = gameData.currentPlayer;
+          this.game.players = gameData.players;
+          this.game.playedCards = gameData.playedCards;
+          this.game.stack = gameData.stack;
+        });
+      }
+    );
   }
 
 
   newGame() {
     this.game = new Game();
-    this.addData();
-  }
-
-
-  async addData() {
-    await addDoc(this.getGamesColRef(), this.game.toJson()).catch(
-      (err) => {console.error(err);}
-    ).then(
-      (docRef) => {console.log('Dokument hinzugefügt mit ID: ', docRef?.id);}
-    );
   }
 
 
   getGamesColRef() {
     return collection(this.firestore, 'games');
+  }
+
+
+  getSingleDocRef(colId:string, docId:string) {   //gibt eine Referenz auf ein einzelnes Dokument zurück!
+    return doc(collection(this.firestore, colId), docId);
   }
 
 
