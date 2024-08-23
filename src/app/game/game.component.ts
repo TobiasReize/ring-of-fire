@@ -20,10 +20,8 @@ import { Observable } from 'rxjs';
   styleUrl: './game.component.scss',
 })
 export class GameComponent implements OnInit {
-  pickCardAnimation = false;
   game!: Game;
-  currentCard: string = '';
-  currentCardNumber: number = 0;
+
 
   firestore: Firestore = inject(Firestore);
   unsubGame!: Unsubscribe;
@@ -38,14 +36,15 @@ export class GameComponent implements OnInit {
     this.route.params.subscribe(
       (params) => {
         this.gameId = params['id'];
-        console.log(this.gameId);
         this.unsubGame = onSnapshot(this.getSingleDocRef('games', this.gameId), (game) => {
           let gameData: any = game.data();
-          console.log(gameData);
           this.game.currentPlayer = gameData.currentPlayer;
           this.game.players = gameData.players;
           this.game.playedCards = gameData.playedCards;
           this.game.stack = gameData.stack;
+          this.game.pickCardAnimation = gameData.pickCardAnimation;
+          this.game.currentCard = gameData.currentCard;
+          this.game.currentCardNumber = gameData.currentCardNumber;
         });
       }
     );
@@ -68,20 +67,20 @@ export class GameComponent implements OnInit {
 
 
   takeCard() {
-    if (!this.pickCardAnimation && this.game.players.length > 0) {
-      this.currentCard = this.game.stack.pop()!;  // "!" damit der Typ "undefined" entfernt wird. Ist das good oder bad practice? (theor. könnte das Array "stack" auch leer sein!)
-      this.pickCardAnimation = true;
+    if (!this.game.pickCardAnimation && this.game.players.length > 0) {
+      this.game.currentCard = this.game.stack.pop()!;  // "!" damit der Typ "undefined" entfernt wird. Ist das good oder bad practice? (theor. könnte das Array "stack" auch leer sein!)
+      this.game.pickCardAnimation = true;
+      this.game.currentPlayer = this.game.currentCardNumber % this.game.players.length;
       this.saveGame();
-      this.game.currentPlayer = this.currentCardNumber % this.game.players.length;
 
       setTimeout(() => {
-        this.game.playedCards.push(this.currentCard);
-        this.saveGame();
+        this.game.playedCards.push(this.game.currentCard);
       }, 900);
 
       setTimeout(() => {
-        this.pickCardAnimation = false;
-        this.currentCardNumber++;
+        this.game.pickCardAnimation = false;
+        this.game.currentCardNumber++;
+        this.saveGame();
       }, 1000);
     }
   }
