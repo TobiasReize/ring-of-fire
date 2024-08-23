@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Game } from '../../models/game';
 import { PlayerComponent } from '../player/player.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DialogAddPlayerComponent } from '../dialog-add-player/dialog-add-player.component';
 import { GameInfoComponent } from '../game-info/game-info.component';
+import { addDoc, collection, collectionData, Firestore } from '@angular/fire/firestore';
 
 
 @Component({
@@ -22,8 +23,20 @@ export class GameComponent implements OnInit {
   currentCard: string = '';
   currentCardNumber: number = 0;
 
+  firestore: Firestore = inject(Firestore);
+  items$;
+  items;
 
-  constructor(public dialog: MatDialog) {}
+
+  constructor(public dialog: MatDialog) {
+    this.items$ = collectionData(this.getGamesColRef());
+    this.items = this.items$.subscribe((game) => {
+      console.log('Game update', game);
+      // game.forEach(element => {
+      //   console.log(element);
+      // })
+    });
+  }
 
 
   ngOnInit(): void {
@@ -33,6 +46,21 @@ export class GameComponent implements OnInit {
 
   newGame() {
     this.game = new Game();
+    this.addData();
+  }
+
+
+  async addData() {
+    await addDoc(this.getGamesColRef(), this.game.toJson()).catch(
+      (err) => {console.error(err);}
+    ).then(
+      (docRef) => {console.log('Dokument hinzugefügt mit ID: ', docRef?.id);}
+    );
+  }
+
+
+  getGamesColRef() {
+    return collection(this.firestore, 'games');
   }
 
 
