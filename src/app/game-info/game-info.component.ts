@@ -31,10 +31,11 @@ export class GameInfoComponent implements OnChanges {
 
   @Input() card = '';
 
+  
   ngOnChanges() {
     if (this.card) {
       // console.log('Current card is: ' + this.card);
-      let cardNumber = +this.card.split('_')[1];
+      let cardNumber = +this.card.split('_')[1];  // "+" damit die Variable als Zahl erkannt wird!
       this.title = this.cardAction[cardNumber - 1].title;
       this.description = this.cardAction[cardNumber - 1].description;
     }

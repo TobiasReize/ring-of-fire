@@ -1,15 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
-import { Game } from '../../models/game';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { PlayerComponent } from '../player/player.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DialogAddPlayerComponent } from '../dialog-add-player/dialog-add-player.component';
 import { GameInfoComponent } from '../game-info/game-info.component';
-import { addDoc, collection, collectionData, doc, Firestore, getDoc, onSnapshot, Unsubscribe, updateDoc } from '@angular/fire/firestore';
+import { onSnapshot, Unsubscribe } from '@angular/fire/firestore';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
+import { FirebaseService } from '../firebase-service/firebase.service';
 
 
 @Component({
@@ -19,68 +18,58 @@ import { Observable } from 'rxjs';
   templateUrl: './game.component.html',
   styleUrl: './game.component.scss',
 })
-export class GameComponent implements OnInit {
-  game!: Game;
-
-
-  firestore: Firestore = inject(Firestore);
+export class GameComponent implements OnInit, OnDestroy {
   unsubGame!: Unsubscribe;
-  gameId:string = '';
+  gameId: string = '';
 
 
-  constructor(private route: ActivatedRoute, public dialog: MatDialog) {}
+  constructor(private route: ActivatedRoute, public dialog: MatDialog, public firebaseService: FirebaseService) {}
 
 
   ngOnInit(): void {
-    this.newGame();
     this.route.params.subscribe(
       (params) => {
         this.gameId = params['id'];
-        this.unsubGame = onSnapshot(this.getSingleDocRef('games', this.gameId), (game) => {
-          let gameData: any = game.data();
-          this.game.currentPlayer = gameData.currentPlayer;
-          this.game.players = gameData.players;
-          this.game.playedCards = gameData.playedCards;
-          this.game.stack = gameData.stack;
-          this.game.pickCardAnimation = gameData.pickCardAnimation;
-          this.game.currentCard = gameData.currentCard;
-          this.game.currentCardNumber = gameData.currentCardNumber;
-        });
+        this.unsubGame = this.subGame();
       }
     );
   }
 
 
-  newGame() {
-    this.game = new Game();
+  subGame() {
+    return onSnapshot(this.firebaseService.getSingleDocRef('games', this.gameId), (game) => {
+      let gameData: any = game.data();  //um nur die reinen Daten zu erhalten! (key-value pair)
+      this.firebaseService.game.currentPlayer = gameData.currentPlayer;
+      this.firebaseService.game.players = gameData.players;
+      this.firebaseService.game.playedCards = gameData.playedCards;
+      this.firebaseService.game.stack = gameData.stack;
+      this.firebaseService.game.pickCardAnimation = gameData.pickCardAnimation;
+      this.firebaseService.game.currentCard = gameData.currentCard;
+      this.firebaseService.game.currentCardNumber = gameData.currentCardNumber;
+    });
   }
 
 
-  getGamesColRef() {
-    return collection(this.firestore, 'games');
-  }
-
-
-  getSingleDocRef(colId:string, docId:string) {   //gibt eine Referenz auf ein einzelnes Dokument zurück!
-    return doc(collection(this.firestore, colId), docId);
+  ngOnDestroy(): void {
+    this.unsubGame();
   }
 
 
   takeCard() {
-    if (!this.game.pickCardAnimation && this.game.players.length > 0) {
-      this.game.currentCard = this.game.stack.pop()!;  // "!" damit der Typ "undefined" entfernt wird. Ist das good oder bad practice? (theor. könnte das Array "stack" auch leer sein!)
-      this.game.pickCardAnimation = true;
-      this.game.currentPlayer = this.game.currentCardNumber % this.game.players.length;
-      this.saveGame();
+    if (!this.firebaseService.game.pickCardAnimation && this.firebaseService.game.players.length > 0 && this.firebaseService.game.stack.length > 0) {
+      this.firebaseService.game.currentCard = this.firebaseService.game.stack.pop()!;  // "!" damit der Typ "undefined" entfernt wird. Ist das good oder bad practice? (theor. könnte das Array "stack" auch leer sein!)
+      this.firebaseService.game.pickCardAnimation = true;
+      this.firebaseService.game.currentPlayer = this.firebaseService.game.currentCardNumber % this.firebaseService.game.players.length;
+      this.firebaseService.saveGame(this.gameId, this.firebaseService.game.toJson());
 
       setTimeout(() => {
-        this.game.playedCards.push(this.game.currentCard);
+        this.firebaseService.game.playedCards.push(this.firebaseService.game.currentCard);
       }, 900);
 
       setTimeout(() => {
-        this.game.pickCardAnimation = false;
-        this.game.currentCardNumber++;
-        this.saveGame();
+        this.firebaseService.game.pickCardAnimation = false;
+        this.firebaseService.game.currentCardNumber++;
+        this.firebaseService.saveGame(this.gameId, this.firebaseService.game.toJson());
       }, 1000);
     }
   }
@@ -90,18 +79,9 @@ export class GameComponent implements OnInit {
     const dialogRef = this.dialog.open(DialogAddPlayerComponent);
     dialogRef.afterClosed().subscribe((name: string) => {
       if (name && name.length > 0) {
-        this.game.players.push(name);
-        this.saveGame();
+        this.firebaseService.game.players.push(name);
+        this.firebaseService.saveGame(this.gameId, this.firebaseService.game.toJson());
       }
     });
   }
-
-
-  async saveGame() {
-    let docRef = this.getSingleDocRef('games', this.gameId);
-    await updateDoc(docRef, this.game.toJson()).catch(
-      (err) => {console.error(err);}
-    );
-  }
-
 }

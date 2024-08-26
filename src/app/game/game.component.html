@@ -1,5 +1,5 @@
-@for (player of game.players; track player; let i = $index) {
-    <app-player [name]="player" [playerActive]="i == game.currentPlayer" [ngStyle]="{'top.px': 100 + (i * 90)}" class="player-position"></app-player>
+@for (player of firebaseService.game.players; track player; let i = $index) {
+    <app-player [name]="player" [playerActive]="i == firebaseService.game.currentPlayer" [ngStyle]="{'top.px': 100 + (i * 90)}" class="player-position"></app-player>
 }
 
 <div class="game-field">
@@ -16,19 +16,19 @@
             src="assets/img/cards/card_cover.png" alt="card-cover">
 
         <!-- Stack for played cards -->
-        @for (card of game.playedCards; track card) {
+        @for (card of firebaseService.game.playedCards; track card) {
             <img class="played-card" src="assets/img/cards/{{ card }}.png" alt="played-cards">
         }
 
         <!-- Current card (Animation) -->
-        @if (game.pickCardAnimation) {
+        @if (firebaseService.game.pickCardAnimation) {
             <img class="pick-card" style="right: 20px" 
-                src="assets/img/cards/{{ game.currentCard }}.png" alt="current-card">
+                src="assets/img/cards/{{ firebaseService.game.currentCard }}.png" alt="current-card">
         }
     </div>
 </div>
 
-<app-game-info [card]="game.currentCard" class="pin-bottom"></app-game-info>
+<app-game-info [card]="firebaseService.game.currentCard" class="pin-bottom"></app-game-info>
 
 <button (click)="openDialog()" class="btn-add" color="primary" mat-fab>
     <mat-icon>add</mat-icon>
