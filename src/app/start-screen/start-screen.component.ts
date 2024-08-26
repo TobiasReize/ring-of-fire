@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { addDoc } from '@firebase/firestore';
+import { Game } from '../../models/game';
+import { FirebaseService } from '../firebase-service/firebase.service';
 
 @Component({
   selector: 'app-start-screen',
@@ -10,9 +13,20 @@ import { Router } from '@angular/router';
 })
 export class StartScreenComponent {
 
-  constructor(private router: Router) { }
+
+  constructor(private router: Router, private firebaseService: FirebaseService) { }
+
 
   newGame() {
-    this.router.navigateByUrl('/game');
+    this.addData();
+  }
+
+
+  async addData() {
+    await addDoc(this.firebaseService.getGamesColRef(), this.firebaseService.game.toJson()).catch(
+      (err) => {console.error(err);}
+    ).then(
+      (gameRef) => {this.router.navigateByUrl('/game/' + gameRef?.id);}
+    );
   }
 }
